@@ -1,0 +1,116 @@
+# GTEx Download Instructions
+
+This document describes how to download the GTEx gene-level TPM expression files required to run the mitochondrial signature scoring pipeline.
+
+## Required GTEx data
+
+This workflow uses **GTEx Analysis V11 gene-level TPM files** from normal human tissues.
+
+For the representative analysis, download the following tissue-specific files:
+
+```text
+gene_tpm_v11_heart_atrial_appendage.gct.gz
+gene_tpm_v11_heart_left_ventricle.gct.gz
+gene_tpm_v11_muscle_skeletal.gct.gz
+gene_tpm_v11_whole_blood.gct.gz
+```
+
+These files correspond to:
+
+```text
+Heart - Atrial Appendage
+Heart - Left Ventricle
+Muscle - Skeletal
+Whole Blood
+```
+
+## Where to download
+
+Go to the GTEx Portal:
+
+```text
+https://gtexportal.org/home/datasets
+```
+
+Then navigate to:
+
+```text
+Adult GTEx
+→ Bulk Tissue Expression
+→ GTEx Analysis V11
+→ Gene TPMs by tissue
+```
+
+Download the four tissue-specific gene TPM files listed above.
+
+## Where to place the files
+
+After download, place the files in a local folder named:
+
+```text
+GTEx_data/
+```
+
+The expected structure is:
+
+```text
+mitochondrial-signature-scoring/
+│
+├── GTEx_data/
+│   ├── gene_tpm_v11_heart_atrial_appendage.gct.gz
+│   ├── gene_tpm_v11_heart_left_ventricle.gct.gz
+│   ├── gene_tpm_v11_muscle_skeletal.gct.gz
+│   └── gene_tpm_v11_whole_blood.gct.gz
+│
+├── data/
+│   └── signatures/
+│       ├── MitoAll.xlsx
+│       └── MitoOnly.xlsx
+│
+└── Rscript/
+    └── run_pipeline.R
+```
+
+## Important notes
+
+GTEx expression files are not included in this repository because of file size.
+
+Do not rename the GTEx sample identifiers inside the files. The pipeline expects the original sample IDs to be preserved.
+
+Use **gene-level TPM files**, not transcript-level TPM files, because the MitoAll and MitoOnly signatures are defined at the gene-symbol level.
+
+The pipeline expects standard GTEx `.gct.gz` files containing gene identifiers, gene symbols, and sample-level expression values.
+
+## Input file checklist
+
+Before running the pipeline, confirm that these files exist:
+
+```text
+GTEx_data/gene_tpm_v11_heart_atrial_appendage.gct.gz
+GTEx_data/gene_tpm_v11_heart_left_ventricle.gct.gz
+GTEx_data/gene_tpm_v11_muscle_skeletal.gct.gz
+GTEx_data/gene_tpm_v11_whole_blood.gct.gz
+```
+
+Also confirm that the mitochondrial signature files exist:
+
+```text
+data/signatures/MitoAll.xlsx
+data/signatures/MitoOnly.xlsx
+```
+
+Each signature file must contain a column named:
+
+```text
+Gene name
+```
+
+## Running the pipeline
+
+After placing the GTEx files in `GTEx_data/`, run:
+
+```r
+source("Rscript/run_pipeline.R")
+```
+
+The workflow will import the GTEx TPM matrices, harmonize gene symbols, calculate MitoAll and MitoOnly scores, assess gene recovery, perform statistical comparisons, and generate output tables and figures.
