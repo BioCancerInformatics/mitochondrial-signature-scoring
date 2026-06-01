@@ -33,7 +33,7 @@ suppressPackageStartupMessages({
 BASE_DIR <- normalizePath(getwd(), winslash = "/", mustWork = FALSE)
 
 EXPR_DIR <- file.path(BASE_DIR, "GTEx_data")
-SIG_DIR  <- file.path(BASE_DIR, "signatures")
+SIG_DIR  <- file.path(BASE_DIR, "Mitocondrial_signatures")
 
 RESULTS_DIR <- file.path(BASE_DIR, "Results")
 TABLE_DIR   <- file.path(RESULTS_DIR, "Tables")
@@ -47,12 +47,23 @@ dir.create(INFO_DIR, recursive = TRUE, showWarnings = FALSE)
 mitoall_file  <- file.path(SIG_DIR, "MitoAll.xlsx")
 mitoonly_file <- file.path(SIG_DIR, "MitoOnly.xlsx")
 
+###############################################################################
+# GTEx tissue TPM files
+###############################################################################
+
 gtex_files <- tibble::tribble(
-  ~tissue, ~file_name,
-  "Heart - Left Ventricle",   "gene_tpm_v11_heart_left_ventricle.gct.gz",
-  "Heart - Atrial Appendage", "gene_tpm_v11_heart_atrial_appendage.gct.gz",
-  "Muscle - Skeletal",        "gene_tpm_v11_muscle_skeletal.gct.gz",
-  "Whole Blood",              "gene_tpm_v11_whole_blood.gct.gz"
+  ~tissue, ~file,
+  "Heart - Left Ventricle",
+  file.path(EXPR_DIR, "gene_tpm_v11_heart_left_ventricle.gct"),
+  
+  "Heart - Atrial Appendage",
+  file.path(EXPR_DIR, "gene_tpm_v11_heart_atrial_appendage.gct"),
+  
+  "Muscle - Skeletal",
+  file.path(EXPR_DIR, "gene_tpm_v11_muscle_skeletal.gct"),
+  
+  "Whole Blood",
+  file.path(EXPR_DIR, "gene_tpm_v11_whole_blood.gct")
 )
 
 ###############################################################################
@@ -62,33 +73,10 @@ gtex_files <- tibble::tribble(
 clean_gene_symbol <- function(x) {
   x %>%
     as.character() %>%
-    str_trim() %>%
-    str_to_upper() %>%
-    na_if("") %>%
-    na_if("NA")
-}
-
-resolve_gtex_file <- function(file_name, expr_dir) {
-  
-  uncompressed_name <- str_remove(file_name, "\\.gz$")
-  
-  candidate_paths <- c(
-    file.path(expr_dir, file_name),
-    file.path(expr_dir, uncompressed_name),
-    file.path(expr_dir, uncompressed_name, basename(uncompressed_name))
-  )
-  
-  existing_path <- candidate_paths[file.exists(candidate_paths)]
-  
-  if (length(existing_path) == 0) {
-    stop(
-      "Could not find GTEx file for: ", file_name, "\n",
-      "Checked:\n",
-      paste(candidate_paths, collapse = "\n")
-    )
-  }
-  
-  existing_path[1]
+    stringr::str_trim() %>%
+    stringr::str_to_upper() %>%
+    dplyr::na_if("") %>%
+    dplyr::na_if("NA")
 }
 
 check_files_exist <- function(paths) {
@@ -114,18 +102,19 @@ import_signature <- function(file, signature_name) {
   }
   
   df %>%
-    transmute(
+    dplyr::transmute(
       signature = signature_name,
       gene_symbol = clean_gene_symbol(`Gene name`)
     ) %>%
-    filter(!is.na(gene_symbol)) %>%
-    distinct(signature, gene_symbol)
+    dplyr::filter(!is.na(gene_symbol)) %>%
+    dplyr::distinct(signature, gene_symbol)
 }
 
 read_gtex_tpm_gct <- function(file, tissue, target_genes = NULL) {
   
   message("Reading GTEx file: ", basename(file), " | Tissue: ", tissue)
   
+  # Standard GTEx GCT files contain two metadata lines before the table.
   gct <- data.table::fread(
     file,
     skip = 2,
@@ -143,58 +132,58 @@ read_gtex_tpm_gct <- function(file, tissue, target_genes = NULL) {
   sample_cols <- setdiff(colnames(gct), c("Name", "Description"))
   
   gct_clean <- gct %>%
-    mutate(
-      ensembl_id = str_remove(Name, "\\..*$"),
+    dplyr::mutate(
+      ensembl_id = stringr::str_remove(Name, "\\..*$"),
       gene_symbol = clean_gene_symbol(Description)
     ) %>%
-    filter(!is.na(gene_symbol))
+    dplyr::filter(!is.na(gene_symbol))
   
   if (!is.null(target_genes)) {
     gct_clean <- gct_clean %>%
-      filter(gene_symbol %in% target_genes)
+      dplyr::filter(gene_symbol %in% target_genes)
   }
   
   gct_long <- gct_clean %>%
-    select(gene_symbol, all_of(sample_cols)) %>%
-    pivot_longer(
-      cols = all_of(sample_cols),
+    dplyr::select(gene_symbol, dplyr::all_of(sample_cols)) %>%
+    tidyr::pivot_longer(
+      cols = dplyr::all_of(sample_cols),
       names_to = "sample_id",
       values_to = "TPM"
     ) %>%
-    mutate(
+    dplyr::mutate(
       tissue = tissue,
       TPM = as.numeric(TPM)
     ) %>%
-    group_by(tissue, sample_id, gene_symbol) %>%
-    summarise(
+    dplyr::group_by(tissue, sample_id, gene_symbol) %>%
+    dplyr::summarise(
       TPM = mean(TPM, na.rm = TRUE),
       .groups = "drop"
     ) %>%
-    mutate(
+    dplyr::mutate(
       log2_TPM = log2(TPM + 1)
     )
   
-  gct_long
+  return(gct_long)
 }
 
 run_one_wilcox <- function(signature_name, comparison_id, group_1, group_2, score_data) {
   
   df_sig <- score_data %>%
-    filter(signature == signature_name)
+    dplyr::filter(signature == signature_name)
   
   x <- df_sig %>%
-    filter(tissue == group_1) %>%
-    pull(signature_score) %>%
+    dplyr::filter(tissue == group_1) %>%
+    dplyr::pull(signature_score) %>%
     na.omit()
   
   y <- df_sig %>%
-    filter(tissue == group_2) %>%
-    pull(signature_score) %>%
+    dplyr::filter(tissue == group_2) %>%
+    dplyr::pull(signature_score) %>%
     na.omit()
   
   if (length(x) < 2 || length(y) < 2) {
     return(
-      tibble(
+      tibble::tibble(
         signature = signature_name,
         comparison_id = comparison_id,
         group_1 = group_1,
@@ -216,7 +205,7 @@ run_one_wilcox <- function(signature_name, comparison_id, group_1, group_2, scor
     exact = FALSE
   )
   
-  tibble(
+  tibble::tibble(
     signature = signature_name,
     comparison_id = comparison_id,
     group_1 = group_1,
@@ -231,17 +220,13 @@ run_one_wilcox <- function(signature_name, comparison_id, group_1, group_2, scor
 }
 
 ###############################################################################
-# 2) RESOLVE AND CHECK INPUT FILES
+# 2) CHECK INPUT FILES
 ###############################################################################
-
-gtex_files <- gtex_files %>%
-  mutate(
-    file = map_chr(file_name, resolve_gtex_file, expr_dir = EXPR_DIR)
-  )
 
 check_files_exist(c(mitoall_file, mitoonly_file, gtex_files$file))
 
-message("\nInput files successfully located.\n")
+message("\nInput files successfully located:\n")
+print(gtex_files)
 
 ###############################################################################
 # 3) IMPORT MITOALL AND MITOONLY SIGNATURES
@@ -257,25 +242,25 @@ mitoonly_genes <- import_signature(
   signature_name = "MitoOnly"
 )
 
-signature_genes <- bind_rows(
+signature_genes <- dplyr::bind_rows(
   mitoall_genes,
   mitoonly_genes
 ) %>%
-  distinct(signature, gene_symbol)
+  dplyr::distinct(signature, gene_symbol)
 
 target_genes <- signature_genes %>%
-  pull(gene_symbol) %>%
+  dplyr::pull(gene_symbol) %>%
   unique()
 
-message("MitoAll genes: ", n_distinct(mitoall_genes$gene_symbol))
-message("MitoOnly genes: ", n_distinct(mitoonly_genes$gene_symbol))
+message("MitoAll genes: ", dplyr::n_distinct(mitoall_genes$gene_symbol))
+message("MitoOnly genes: ", dplyr::n_distinct(mitoonly_genes$gene_symbol))
 message("Total unique signature genes: ", length(target_genes))
 
 ###############################################################################
 # 4) IMPORT GTEX TPM FILES AND TRANSFORM EXPRESSION
 ###############################################################################
 
-gtex_expr_long <- pmap_dfr(
+gtex_expr_long <- purrr::pmap_dfr(
   .l = list(
     file = gtex_files$file,
     tissue = gtex_files$tissue
