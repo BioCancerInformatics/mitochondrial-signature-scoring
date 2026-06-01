@@ -12,8 +12,6 @@ The pipeline starts from gene-level TPM expression matrices and produces sample-
 
 **Figure. Computational workflow.** GTEx gene-level TPM matrices are imported, gene symbols are harmonized, MitoAll and MitoOnly genes are matched to the expression matrix, expression values are transformed as `log2(TPM + 1)`, gene-wise z-scores are calculated, and sample-level mitochondrial signature scores are obtained by averaging standardized expression across detected genes in each signature.
 
-**Figure 1. Computational framework for mitochondrial signature scoring.** Gene-level TPM matrices are imported, gene symbols are harmonized, MitoAll and MitoOnly genes are matched to the expression matrix, expression values are transformed as `log2(TPM + 1)`, gene-wise z-scores are calculated, and sample-level mitochondrial signature scores are obtained by averaging standardized expression across detected genes in each signature.
-
 ## Pipeline
 
 Run the complete workflow in R with:
@@ -40,26 +38,20 @@ The pipeline performs the following steps:
 mitochondrial-signature-scoring/
 │
 ├── README.md
-├── LICENSE
-├── sessionInfo.txt
 │
 ├── data/
 │   └── signatures/
 │       ├── MitoAll.xlsx
 │       └── MitoOnly.xlsx
 │
-├── scripts/
-│   ├── run_pipeline.R
-│   ├── 01_import_harmonize_transform.R
-│   ├── 02_score_signatures_statistics.R
-│   └── 03_generate_framework_figure.R
+├── Rscript/
+│   └── run_pipeline.R
 │
 ├── results/
 │   ├── tables/
 │   └── figures/
-│       ├── Figure1_MitoSignature_Workflow_README.png
-│       ├── Figure1_MitoSignature_Workflow.pdf
-│       └── Figure1_MitoSignature_Workflow.tiff
+│       ├── Figure_MitoSignature_Workflow_README.png
+│       └── Figure_1.png
 │
 └── docs/
     └── GTEx_download_instructions.md
