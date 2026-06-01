@@ -63,10 +63,9 @@ Mitochondrial-signature-scoring/
 │
 ├── README.md
 │
-├── data/
-│   └── signatures/
-│       ├── MitoAll.xlsx
-│       └── MitoOnly.xlsx
+├── signatures/
+│   ├── MitoAll.xlsx
+│   └── MitoOnly.xlsx
 │
 ├── Rscript/
 │   └── run_pipeline.R
