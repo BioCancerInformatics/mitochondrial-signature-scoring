@@ -112,8 +112,8 @@ GTEx_data/
 The mitochondrial signatures used for scoring are provided in:
 
 ```text
-data/signatures/MitoAll.xlsx
-data/signatures/MitoOnly.xlsx
+signatures/MitoAll.xlsx
+signatures/MitoOnly.xlsx
 ```
 
 Each signature file must contain a column named:
