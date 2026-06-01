@@ -34,6 +34,13 @@ The pipeline starts from gene-level TPM expression matrices and produces sample-
 
 **Computational workflow.** Gene-level TPM matrices are imported, gene symbols are harmonized, MitoAll and MitoOnly genes are matched to the expression matrix, expression values are transformed as `log2(TPM + 1)`, gene-wise z-scores are calculated, and sample-level mitochondrial signature scores are obtained by averaging standardized expression across detected genes in each signature.
 
+## Representative result
+
+The representative analysis applies the mitochondrial signature scoring workflow to selected GTEx normal tissues. The resulting figure shows the distribution of **MitoAll** and **MitoOnly** sample-level scores across tissues with distinct expected mitochondrial abundance.
+
+![Figure 1. Representative mitochondrial signature scoring results](Results/Figures/Figure_1.png)
+
+**Figure 1. Representative mitochondrial signature scoring in GTEx normal tissues.** Sample-level MitoAll and MitoOnly scores were calculated after gene-symbol harmonization, `log2(TPM + 1)` transformation, and gene-wise z-score standardization. The figure illustrates how the workflow can be used to compare mitochondrial transcriptional signatures across normal human tissues.
 
 ## Pipeline
 
@@ -137,18 +144,18 @@ Figures are saved in:
 Results/Figures/
 ```
 
-The main figure is:
+The main framework figure is:
 
 ```text
-Results/Figures/Figure_1.pdf
+Results/Figures/Figure_MitoSignature_Workflow.png
 ```
 
-## Representative result
+The representative result figure is:
 
-The representative analysis applies the mitochondrial signature scoring workflow to selected GTEx normal tissues. The resulting figure shows the distribution of **MitoAll** and **MitoOnly** sample-level scores across tissues with distinct expected mitochondrial abundance.
-
-![Figure 1. Representative mitochondrial signature scoring results](Results/Figures/Figure_1.pdf)
-
+```text
+Results/Figures/Figure_1.png
+Results/Figures/Figure_1.pdf
+```
 
 ## Interpretation
 
