@@ -91,8 +91,6 @@ Mitochondrial-signature-scoring/
 │   │
 │   ├── RDS/
 │   │   ├── signature_genes_clean.rds
-│   │   ├── gtex_mito_signature_genes_log2TPM_long.rds
-│   │   ├── gtex_expr_gene_wise_zscores.rds
 │   │   └── gtex_mitoall_mitoonly_sample_scores.rds
 │   │
 │   ├── Figures/
